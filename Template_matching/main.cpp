@@ -46,16 +46,16 @@ void main(int argc, char *argv[])
 
 	text_info input_info;
 	input_info.input(argv[1]);
-
+	std::cout << "(´・ω・)" <<  std::endl;
 	// information of case
 	nari::case_list_t cases;
 	cases.load_file_txt(input_info.pathId, true);
-
+	std::cout << "(´・ω・)" <<  std::endl;
 	//基準症例の情報を取得(サイズ，制御点など)
 	nari::mhd mhdRef;
 	disp_list_t_3 listDisp;
 	mhdRef.load(input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + ".mhd");
-
+	std::cout << "(´・ω・)" <<  std::endl;
 	int xeRef = mhdRef.size1();
 	int yeRef = mhdRef.size2();
 	int zeRef = mhdRef.size3();
@@ -69,20 +69,22 @@ void main(int argc, char *argv[])
 	//double xrRef = xrRef * (double)xeRef / xeRef;
 	//double yrRef = yrRef * (double)yeRef / yeRef;
 	//double zrRef = zrRef * (double)zeRef / zeRef;
-
+	std::cout << "(´・ω・)" <<  std::endl;
 	nari::mhd mhdRefS;
 	mhdRefS = mhdRef;
 	mhdRefS.size123(xeRef, yeRef, zeRef);
 	mhdRefS.reso123(xrRef, yrRef, zrRef);
-
+	std::cout << "(´・ω・)" <<  std::endl;
 	//基準症例の読み込み
-	nari::vector<unsigned short> imgRef(xeRef * yeRef * zeRef);
+	nari::vector<short> imgRef;
 	imgRef.load_file_bin(input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + ".raw");
-	nari::vector<unsigned char> imgLabel(xeRef * yeRef * zeRef);
+	//read_vector(imgRR,input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + ".raw");
+	std::cout << "(´・ω・)" <<  std::endl;
+	nari::vector<unsigned char> imgLabel;
 	imgLabel.load_file_bin(input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + "_label.raw");
 
-	std::cout << "(´・ω・)" << imgLabel.size() << std::endl;
-
+	std::cout << "(´・ω・)" << std::endl;
+	
 	int rx = input_info.rangex;
 	int ry = input_info.rangey;
 	int rz = input_info.rangez;
@@ -103,7 +105,7 @@ void main(int argc, char *argv[])
 		for (int y = ry; y < yeRef - ry; y += ry * 2 + 1) {
 			for (int z = rz; z < zeRef - rz; z += rz * 2 + 1) {
 				//とった点でテンプレートを作成してみる
-				nari::vector<unsigned short> tmp_Ref(tmp_size);
+				nari::vector<short> tmp_Ref(tmp_size);
 				nari::vector<unsigned char> tmp_label(tmp_size);
 				int t = 0;
 				for (int r = 0; r < 2 * tmp + 1; r++) {
@@ -193,7 +195,7 @@ void main(int argc, char *argv[])
 		std::cout << "(^^)<画像読み込むよ" << std::endl;
 
 		//浮動症例の読み込み
-		nari::vector<unsigned short> imgFl(xeFl * yeFl * zeFl);
+		nari::vector<short> imgFl(xeFl * yeFl * zeFl);
 		imgFl.load_file_bin(input_info.dirFl + cases[i].dir + cases[i].basename + ".raw");
 		//浮動症例の計測点を格納するベクトルを用意
 		nari::vector<nari::vector<int>> DispFl(DispRef.size());

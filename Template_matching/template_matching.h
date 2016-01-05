@@ -20,7 +20,7 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 #pragma omp parallel for schedule(dynamic) num_threads(8)
 	for (int a = 0; a < disp_num; a++) {
 		nari::vector<int> disp(3);
-		nari::vector<unsigned short> tmp_Ref(tmp_size);
+		nari::vector<short> tmp_Ref(tmp_size);
 		int t = 0;
 		int v = 0;
 		//テンプレートマッチング前にあらかじめ位置合わせしたい側の画像のテンプレート作成
@@ -61,7 +61,7 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 		for (int k = 0; k < rangez * 2 + 1; k++) {
 			for (int j = 0; j < rangey * 2 + 1; j++) {
 				for (int i = 0; i < rangex * 2 + 1; i++) {
-					nari::vector<unsigned short> tmp_Fl(tmp_size);
+					nari::vector<short> tmp_Fl(tmp_size);
 					int u = 0;
 					//位置合わせされる側の画像テンプレート作成
 					for (int r = 0; r < 2 * tmp + 1; r++) {
