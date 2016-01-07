@@ -31,6 +31,9 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 					int y = DispRef[a][1] - tmp + q;
 					int z = DispRef[a][2] - tmp + r;
 					//テンプレートが画像からはみ出た場合は折り返した画像を入れる
+					if (x < 0) x = - x;
+					if (y < 0) y = - y;
+					if (z < 0) z = - z;
 					if (x > xeRef - 1) x = 2 * (xeRef - 1) - x;
 					if (y > yeRef - 1) y = 2 * (yeRef - 1) - y;
 					if (z > zeRef - 1) z = 2 * (zeRef - 1) - z;
