@@ -29,8 +29,14 @@
 #include "template_matching.h"
 #include "set_point.h"
 
+#include <chrono>
+#include <iostream>
+
 void main(int argc, char *argv[])
 {
+	auto start = std::chrono::system_clock::now();
+		
+
 	//おそらくrbf変形に使う型の定義，3次元用か？
 	typedef nari::rbf<double, double, 3> rbf_t;
 	typedef rbf_t::disp_t disp_t_3;
@@ -224,4 +230,8 @@ void main(int argc, char *argv[])
 		std::cout << "保存した" << std::endl;
 	
 	}
+	auto end = std::chrono::system_clock::now();
+	auto dur = end - start;
+	auto msec = std::chrono::duration_cast<std::chrono::seconds>(dur).count();
+	std::cout << "TM処理時間=" << msec << "sec" << std::endl;
 }
