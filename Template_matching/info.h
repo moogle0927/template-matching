@@ -26,7 +26,7 @@ struct text_info
 	int rangex;
 	int rangey;
 	int rangez;
-	int d;
+	int delta;
 	double lamb;
 
 
@@ -51,6 +51,7 @@ struct text_info
 		rangey = info.get_as_int("range_y");
 		rangez = info.get_as_int("range_z");
 		lamb = info.get_as_double("lamb");
+		delta = info.get_as_int("delta");
 
 
 		info.output();

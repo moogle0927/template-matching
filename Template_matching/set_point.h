@@ -5,7 +5,7 @@
 #include "info.h"
 
 template <class L, class D>
-void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, int yeRef, int zeRef, nari::vector<nari::vector<D>> &DispRef)
+void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, int yeRef, int zeRef, nari::vector<nari::vector<D>> &DispRef, nari::vector<nari::vector<D>> &preRef)
 {
 	
 	//浮動座標を格納する配列を用意
@@ -891,6 +891,20 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 			x = xeRef - 1;
 		}
 	}
+
+	//[26][27]の中点の座標をpreRefに追加
+	//座標をRef_listにテキストとして保存
+	int x_46 = (DispRef[26][0] + DispRef[27][0]) / 2;
+	int y_46 = DispRef[26][1];
+	int z_46 = DispRef[26][2];
+	Ref_list << x_46 << std::endl;
+	Ref_list << y_46 << std::endl;
+	Ref_list << z_46 << std::endl;
+	//ベクターにも保存(テンプレートマッチング用)
+	disp[0] = x_46;
+	disp[1] = y_46;
+	disp[2] = z_46;
+	preRef.push_back(disp);
 
 	
 }

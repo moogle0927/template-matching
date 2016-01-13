@@ -32,6 +32,22 @@
 #include <chrono>
 #include <iostream>
 
+template <class IMG_T>
+void deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, int yeFl, int zeFl, nari::vector<float> &imgMoveX, nari::vector<float> &imgMoveY, nari::vector<float> &imgMoveZ, nari::vector<IMG_T> &imgI, nari::vector<IMG_T> &imgO)
+{
+	for (int z = 0; z < zeRef; z++)
+	{
+		for (int y = 0; y < yeRef; y++)
+		{
+			for (int x = 0; x < xeRef; x++)
+			{
+				int s = z * xeRef * yeRef + y * xeRef + x;
+				imgO[s] = static_cast<IMG_T>(nari::interpolate_value::linear(imgI.ptr(), imgMoveX[s], imgMoveY[s], imgMoveZ[s], xeFl, yeFl, zeFl));
+			}
+		}
+	}
+}
+
 void main(int argc, char *argv[])
 {
 	auto start = std::chrono::system_clock::now();
@@ -98,8 +114,12 @@ void main(int argc, char *argv[])
 
 	int tmp = input_info.tmp;
 	int tmp_size = (tmp * 2 + 1)*(tmp * 2 + 1)*(tmp * 2 + 1);
+	int delta = input_info.delta;
 
 	std::string dir_reflist = input_info.dirRef + input_info.caseRef_dir + "disp/" + input_info.caseRef_name + ".txt";
+
+
+
 	////探索点を格納するベクターを用意
 	//nari::vector<int> disp(3);
 	//nari::vector<nari::vector<int>> DispRef;
@@ -109,9 +129,9 @@ void main(int argc, char *argv[])
 	//std::ofstream Ref_list(input_info.dirRef + input_info.caseRef_dir + "disp/" + input_info.caseRef_name + ".txt");
 
 	////まずは格子状に仮の探索点をとる
-	//for (int x = rx; x < xeRef - rx; x += rx * 2 + 1) {
-	//	for (int y = ry; y < yeRef - ry; y += ry * 2 + 1) {
-	//		for (int z = rz; z < zeRef - rz; z += rz * 2 + 1) {
+	//for (int x = rx; x < xeRef - rx; x += delta) {
+	//	for (int y = ry; y < yeRef - ry; y += delta) {
+	//		for (int z = rz; z < zeRef - rz; z += delta) {
 	//			//とった点でテンプレートを作成してみる
 	//			nari::vector<short> tmp_Ref(tmp_size);
 	//			nari::vector<unsigned char> tmp_label(tmp_size);
@@ -123,6 +143,9 @@ void main(int argc, char *argv[])
 	//						int ytmp = y - tmp + q;
 	//						int ztmp = z - tmp + r;
 	//						//テンプレートが画像からはみ出た場合は折り返した画像を入れる
+	//						if (x < 0) x = -x;
+	//						if (y < 0) y = -y;
+	//						if (z < 0) z = -z;
 	//						if (x > xeRef - 1) x = 2 * (xeRef - 1) - x;
 	//						if (y > yeRef - 1) y = 2 * (yeRef - 1) - y;
 	//						if (z > zeRef - 1) z = 2 * (zeRef - 1) - z;
@@ -169,8 +192,11 @@ void main(int argc, char *argv[])
 	//	}
 	//}
 
+
+
 	nari::vector<nari::vector<int>> DispRef;
-	set_point(dir_reflist, imgLabel, xeRef, yeRef, zeRef, DispRef);
+	nari::vector<nari::vector<int>> preRef(1);
+	set_point(dir_reflist, imgLabel, xeRef, yeRef, zeRef, DispRef,preRef);
 
 	//計測点の座標をロード,listDispに代入
 	rbf_t::load_cordinates(input_info.dirRef + input_info.caseRef_dir + "disp/" + input_info.caseRef_name + ".txt", listDisp);
@@ -210,6 +236,45 @@ void main(int argc, char *argv[])
 		imgFl.load_file_bin(input_info.dirFl + cases[i].dir + cases[i].basename + ".raw");
 		//浮動症例の計測点を格納するベクトルを用意
 		nari::vector<nari::vector<int>> DispFl(DispRef.size());
+
+
+
+		//////ここからの処理は大まかな平行移動を行う処理
+		//nari::vector<nari::vector<int>> preFl(1);
+		////[46]の点のみpreTM
+		//template_mathcing(imgRef, imgFl, preRef, preFl, xeRef, yeRef, zeRef,
+		//	xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+		////preTMの結果をもとに画像をRef→Fl平行移動させる
+		////移動場格納用（基準症例の座標から対応する浮動症例の座標を取得）
+		//nari::vector<float> imgMoveX(xeRef * yeRef * zeRef);
+		//nari::vector<float> imgMoveY(xeRef * yeRef * zeRef);
+		//nari::vector<float> imgMoveZ(xeRef * yeRef * zeRef);
+		//int move_x = preRef[0][0] - preFl[0][0];
+		//int move_y = preRef[0][1] - preFl[0][1];
+		//int move_z = preRef[0][2] - preFl[0][2];
+		//for (int z = 0; z < zeRef; z++)
+		//{
+		//	for (int y = 0; y < yeRef; y++)
+		//	{
+		//		for (int x = 0; x < xeRef; x++)
+		//		{
+		//			int s = z * xeRef * yeRef + y * xeRef + x;
+		//			imgMoveX[s] = (float)move_x;
+		//			imgMoveY[s] = (float)move_y;
+		//			imgMoveZ[s] = (float)move_z;
+		//		}
+		//	}
+		//}
+
+		////imgIに浮動症例を読み込んでimgOに
+		//nari::vector<short> imgI(xeFl * yeFl * zeFl), imgRef2(xeRef * yeRef * zeRef);
+		//mhdFl.load_mhd_and_image(imgI, input_info.dirFl + cases[i].dir + cases[i].basename + ".mhd");
+		////簡単な平行移動を行いった結果をimgRef2に保存
+		//deformation_using_movement(xeRef, yeRef, zeRef, xeFl, yeFl, zeFl, imgMoveX, imgMoveY, imgMoveZ, imgI, imgRef2);
+		//mhdRef.save_mhd_and_image(imgRef2, input_info.dirFl + cases[i].dir + "premove/" + cases[i].basename + ".raw");
+
+
+
 		std::cout << "(^^)<TMするよ" << std::endl;
 		//テンプレートマッチング
 		template_mathcing(imgRef, imgFl, DispRef, DispFl, xeRef, yeRef, zeRef,
