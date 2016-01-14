@@ -42,7 +42,10 @@ void deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, int y
 			for (int x = 0; x < xeRef; x++)
 			{
 				int s = z * xeRef * yeRef + y * xeRef + x;
+				//std::cout << imgMoveX[s] <<","<< imgMoveY[s] << "," << imgMoveZ[s] <<std::endl;
+				//std::cout << imgI[s] << std::endl;
 				imgO[s] = static_cast<IMG_T>(nari::interpolate_value::linear(imgI.ptr(), imgMoveX[s], imgMoveY[s], imgMoveZ[s], xeFl, yeFl, zeFl));
+				//std::cout << imgO[s] << std::endl;
 			}
 		}
 	}
@@ -51,7 +54,7 @@ void deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, int y
 void main(int argc, char *argv[])
 {
 	auto start = std::chrono::system_clock::now();
-		
+
 
 	//おそらくrbf変形に使う型の定義，3次元用か？
 	typedef nari::rbf<double, double, 3> rbf_t;
@@ -69,16 +72,16 @@ void main(int argc, char *argv[])
 
 	text_info input_info;
 	input_info.input(argv[1]);
-	std::cout << "(´・ω・)" <<  std::endl;
+	std::cout << "(´・ω・)" << std::endl;
 	// information of case
 	nari::case_list_t cases;
 	cases.load_file_txt(input_info.pathId, true);
-	std::cout << "(´・ω・)" <<  std::endl;
+	std::cout << "(´・ω・)" << std::endl;
 	//基準症例の情報を取得(サイズ，制御点など)
 	nari::mhd mhdRef;
 	disp_list_t_3 listDisp;
 	mhdRef.load(input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + ".mhd");
-	std::cout << "(´・ω・)" <<  std::endl;
+	std::cout << "(´・ω・)" << std::endl;
 	int xeRef = mhdRef.size1();
 	int yeRef = mhdRef.size2();
 	int zeRef = mhdRef.size3();
@@ -92,22 +95,22 @@ void main(int argc, char *argv[])
 	//double xrRef = xrRef * (double)xeRef / xeRef;
 	//double yrRef = yrRef * (double)yeRef / yeRef;
 	//double zrRef = zrRef * (double)zeRef / zeRef;
-	std::cout << "(´・ω・)" <<  std::endl;
+	std::cout << "(´・ω・)" << std::endl;
 	nari::mhd mhdRefS;
 	mhdRefS = mhdRef;
 	mhdRefS.size123(xeRef, yeRef, zeRef);
 	mhdRefS.reso123(xrRef, yrRef, zrRef);
-	std::cout << "(´・ω・)" <<  std::endl;
+	std::cout << "(´・ω・)" << std::endl;
 	//基準症例の読み込み
 	nari::vector<short> imgRef;
 	imgRef.load_file_bin(input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + ".raw");
 	//read_vector(imgRR,input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + ".raw");
-	std::cout << "(´・ω・)" <<  std::endl;
+	std::cout << "(´・ω・)" << std::endl;
 	nari::vector<unsigned char> imgLabel;
 	imgLabel.load_file_bin(input_info.dirRef + input_info.caseRef_dir + input_info.caseRef_name + "_label.raw");
 
 	std::cout << "(´・ω・)" << std::endl;
-	
+
 	int rx = input_info.rangex;
 	int ry = input_info.rangey;
 	int rz = input_info.rangez;
@@ -195,8 +198,19 @@ void main(int argc, char *argv[])
 
 
 	nari::vector<nari::vector<int>> DispRef;
-	nari::vector<nari::vector<int>> preRef(1);
-	set_point(dir_reflist, imgLabel, xeRef, yeRef, zeRef, DispRef,preRef);
+	nari::vector<nari::vector<int>> preRef;
+	set_point(dir_reflist, imgLabel, xeRef, yeRef, zeRef, DispRef);
+
+	//[26][27]の中点の座標をpreRefに追加
+	int x_46 = (DispRef[26][0] + DispRef[27][0]) / 2;
+	int y_46 = DispRef[26][1];
+	int z_46 = DispRef[26][2];
+	//preRefに保存
+	nari::vector<int> disp(3);
+	disp[0] = x_46;
+	disp[1] = y_46;
+	disp[2] = z_46;
+	preRef.push_back(disp);
 
 	//計測点の座標をロード,listDispに代入
 	rbf_t::load_cordinates(input_info.dirRef + input_info.caseRef_dir + "disp/" + input_info.caseRef_name + ".txt", listDisp);
@@ -237,47 +251,54 @@ void main(int argc, char *argv[])
 		//浮動症例の計測点を格納するベクトルを用意
 		nari::vector<nari::vector<int>> DispFl(DispRef.size());
 
+		int mm = preRef[0][0];
+		std::cout << mm << std::endl;
 
+		////ここからの処理は大まかな平行移動を行う処理
+		nari::vector<nari::vector<int>> preFl(1);
+		//[46]の点のみpreTM
+		template_mathcing(imgRef, imgFl, preRef, preFl, xeRef, yeRef, zeRef,
+			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+		//preTMの結果をもとに画像をRef→Fl平行移動させる
+		//移動場格納用（基準症例の座標から対応する浮動症例の座標を取得）
+		nari::vector<float> imgMoveX(xeRef * yeRef * zeRef);
+		nari::vector<float> imgMoveY(xeRef * yeRef * zeRef);
+		nari::vector<float> imgMoveZ(xeRef * yeRef * zeRef);
+		int move_x = preRef[0][0] - preFl[0][0];
+		int move_y = preRef[0][1] - preFl[0][1];
+		int move_z = preRef[0][2] - preFl[0][2];
 
-		//////ここからの処理は大まかな平行移動を行う処理
-		//nari::vector<nari::vector<int>> preFl(1);
-		////[46]の点のみpreTM
-		//template_mathcing(imgRef, imgFl, preRef, preFl, xeRef, yeRef, zeRef,
-		//	xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
-		////preTMの結果をもとに画像をRef→Fl平行移動させる
-		////移動場格納用（基準症例の座標から対応する浮動症例の座標を取得）
-		//nari::vector<float> imgMoveX(xeRef * yeRef * zeRef);
-		//nari::vector<float> imgMoveY(xeRef * yeRef * zeRef);
-		//nari::vector<float> imgMoveZ(xeRef * yeRef * zeRef);
-		//int move_x = preRef[0][0] - preFl[0][0];
-		//int move_y = preRef[0][1] - preFl[0][1];
-		//int move_z = preRef[0][2] - preFl[0][2];
-		//for (int z = 0; z < zeRef; z++)
-		//{
-		//	for (int y = 0; y < yeRef; y++)
-		//	{
-		//		for (int x = 0; x < xeRef; x++)
-		//		{
-		//			int s = z * xeRef * yeRef + y * xeRef + x;
-		//			imgMoveX[s] = (float)move_x;
-		//			imgMoveY[s] = (float)move_y;
-		//			imgMoveZ[s] = (float)move_z;
-		//		}
-		//	}
-		//}
+		std::cout << move_x << std::endl;
+		std::cout << move_y << std::endl;
+		std::cout << move_z << std::endl;
 
-		////imgIに浮動症例を読み込んでimgOに
-		//nari::vector<short> imgI(xeFl * yeFl * zeFl), imgRef2(xeRef * yeRef * zeRef);
-		//mhdFl.load_mhd_and_image(imgI, input_info.dirFl + cases[i].dir + cases[i].basename + ".mhd");
-		////簡単な平行移動を行いった結果をimgRef2に保存
-		//deformation_using_movement(xeRef, yeRef, zeRef, xeFl, yeFl, zeFl, imgMoveX, imgMoveY, imgMoveZ, imgI, imgRef2);
-		//mhdRef.save_mhd_and_image(imgRef2, input_info.dirFl + cases[i].dir + "premove/" + cases[i].basename + ".raw");
+		for (int z = 0; z < zeRef; z++)
+		{
+			for (int y = 0; y < yeRef; y++)
+			{
+				for (int x = 0; x < xeRef; x++)
+				{
+					int s = z * xeRef * yeRef + y * xeRef + x;
+					imgMoveX[s] = (float)x+move_x;
+					imgMoveY[s] = (float)y+move_y;
+					imgMoveZ[s] = (float)z+move_z;
+				}
+			}
+		}
 
-
+		std::cout << imgMoveX[3] << std::endl;
+		std::cout << imgMoveY[3] << std::endl;
+		std::cout << imgMoveZ[3] << std::endl;
+		//imgIに浮動症例を読み込んでimgOに
+		nari::vector<short> imgI(xeRef * yeRef * zeRef),imgO(xeRef * yeRef * zeRef);
+		mhdRef.load_mhd_and_image(imgI, input_info.dirFl + cases[i].dir + cases[i].basename + ".mhd");
+		//簡単な平行移動を行いった結果をimgRef2に保存
+		deformation_using_movement(xeRef, yeRef, zeRef, xeRef, yeRef, zeRef, imgMoveX, imgMoveY, imgMoveZ, imgI, imgO);
+		mhdRef.save_mhd_and_image(imgO, input_info.dirFl + cases[i].dir + "premove/" + cases[i].basename + ".raw");
 
 		std::cout << "(^^)<TMするよ" << std::endl;
 		//テンプレートマッチング
-		template_mathcing(imgRef, imgFl, DispRef, DispFl, xeRef, yeRef, zeRef,
+		template_mathcing(imgRef, imgO, DispRef, DispFl, xeRef, yeRef, zeRef,
 			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
 		std::cout << "～テンプレートマッチング終了<(_ _)>～" << std::endl;
 		//テンプレートマッチングにより決定した対応点の座標をテキストに保存
@@ -293,7 +314,7 @@ void main(int argc, char *argv[])
 			Fl_list << zs << std::endl;
 		}
 		std::cout << "保存した" << std::endl;
-	
+
 	}
 	auto end = std::chrono::system_clock::now();
 	auto dur = end - start;

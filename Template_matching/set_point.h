@@ -5,9 +5,9 @@
 #include "info.h"
 
 template <class L, class D>
-void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, int yeRef, int zeRef, nari::vector<nari::vector<D>> &DispRef, nari::vector<nari::vector<D>> &preRef)
+void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, int yeRef, int zeRef, nari::vector<nari::vector<D>> &DispRef)
 {
-	
+
 	//浮動座標を格納する配列を用意
 	nari::vector<int> disp(3);
 
@@ -258,7 +258,7 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 	//⑥のsagittal断面の頭側[12]と首側[13]
 	for (int z = 0; z < zeRef; z++) {
 		int x = DispRef[0][0];
-		int y = (DispRef[0][1] + DispRef[1][1]*3) / 4;
+		int y = (DispRef[0][1] + DispRef[1][1] * 3) / 4;
 		int s = x + y * xeRef + z * xeRef*yeRef;
 		if (imgLabel[s] == 1) {
 			//座標をRef_listにテキストとして保存
@@ -277,7 +277,7 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 
 	for (int z = zeRef - 1; z > 0; z--) {
 		int x = DispRef[0][0];
-		int y = (DispRef[0][1] + DispRef[1][1]*3) / 4;
+		int y = (DispRef[0][1] + DispRef[1][1] * 3) / 4;
 		int s = x + y * xeRef + z * xeRef*yeRef;
 		if (imgLabel[s] == 1) {
 			//座標をRef_listにテキストとして保存
@@ -312,7 +312,7 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 			z = zeRef - 1;
 		}
 	}
-	
+
 	for (int z = zeRef - 1; z > 0; z--) {
 		int x = DispRef[0][0];
 		int y = (DispRef[0][1] + DispRef[1][1] * 7) / 8;
@@ -510,7 +510,7 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 
 	for (int x = xeRef - 1; x > 0; x--) {
 		int y = (DispRef[0][1] * 5 + DispRef[1][1] * 3) / 8;
-		int z =  DispRef[7][2];
+		int z = DispRef[7][2];
 		int s = x + y * xeRef + z * xeRef*yeRef;
 		if (imgLabel[s] == 1) {
 			//座標をRef_listにテキストとして保存
@@ -570,7 +570,7 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 	//④のcoronal断面でみたときの左[28]右[29]端点(下)
 	for (int x = 0; x < xeRef; x++) {
 		int y = (DispRef[0][1] + DispRef[1][1]) / 2;
-		int z =  DispRef[9][2];
+		int z = DispRef[9][2];
 		int s = x + y * xeRef + z * xeRef*yeRef;
 		if (imgLabel[s] == 1) {
 			//座標をRef_listにテキストとして保存
@@ -892,21 +892,9 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 		}
 	}
 
-	//[26][27]の中点の座標をpreRefに追加
-	//座標をRef_listにテキストとして保存
-	int x_46 = (DispRef[26][0] + DispRef[27][0]) / 2;
-	int y_46 = DispRef[26][1];
-	int z_46 = DispRef[26][2];
-	Ref_list << x_46 << std::endl;
-	Ref_list << y_46 << std::endl;
-	Ref_list << z_46 << std::endl;
-	//ベクターにも保存(テンプレートマッチング用)
-	disp[0] = x_46;
-	disp[1] = y_46;
-	disp[2] = z_46;
-	preRef.push_back(disp);
-
 	
+
+
 }
 
 #endif

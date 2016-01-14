@@ -12,6 +12,7 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 	int tmp, int rangex, int rangey, int rangez)
 {
 	int disp_num = DispRef.size();
+	std::cout << disp_num << std::endl;
 
 	int tmp_size = (tmp * 2 + 1)*(tmp * 2 + 1)*(tmp * 2 + 1);
 
