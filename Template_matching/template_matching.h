@@ -5,6 +5,7 @@
 #include "narivectorpp.h"
 //#include "nmi_matching_It.h"
 #include <omp.h>
+#include "stdlib.h"
 
 template <class T, class M>
 void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &imgFl, const nari::vector<nari::vector<int>> &DispRef,
@@ -31,18 +32,19 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 					int x = DispRef[a][0] - tmp + p;
 					int y = DispRef[a][1] - tmp + q;
 					int z = DispRef[a][2] - tmp + r;
-					//テンプレートが画像からはみ出た場合は折り返した画像を入れる
-					if (x < 0) x = - x;
-					if (y < 0) y = - y;
-					if (z < 0) z = - z;
-					if (x > xeRef - 1) x = 2 * (xeRef - 1) - x;
-					if (y > yeRef - 1) y = 2 * (yeRef - 1) - y;
-					if (z > zeRef - 1) z = 2 * (zeRef - 1) - z;
-					int s = xeRef*yeRef*z + xeRef*y + x;
-					//テンプレート内の画素を0～32に正規化
-					//tmp_Ref[t] = imgRef[s]*32/65535;
-					tmp_Ref[t] = imgRef[s];
-					//std::cout << tmp_Ref[t] ;
+					//テンプレートが画像からはみ出た場合(0,0,0)の濃度値を入れる
+					if (x < 0 || y < 0 || z < 0 || x > xeFl - 1 || y > yeFl - 1 || z > zeFl - 1) {
+						
+						tmp_Ref[t] = rand() % (1000 - 100 + 1) + 100;
+					}
+					else {
+						int s = xeRef*yeRef*z + xeRef*y + x;
+						//テンプレート内の画素を0～32に正規化
+						//tmp_Ref[t] = imgRef[s]*32/65535;
+						tmp_Ref[t] = imgRef[s];
+						//std::cout << tmp_Ref[t] ;
+					}
+					
 					t++;
 
 				}
@@ -74,17 +76,16 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 								int x = DispRef[a][0] - rangex + i - tmp + p;
 								int y = DispRef[a][1] - rangey + j - tmp + q;
 								int z = DispRef[a][2] - rangez + k - tmp + r;
-								//テンプレートが画像からはみ出た場合は折り返した画像を入れる
-								if (x < 0) x = -x;
-								if (y < 0) y = -y;
-								if (z < 0) z = -z;
-								if (x > xeFl - 1) x = 2 * (xeFl - 1) - x;
-								if (y > yeFl - 1) y = 2 * (yeFl - 1) - y;
-								if (z > zeFl - 1) z = 2 * (zeFl - 1) - z;
-								int s = xeFl*yeFl*z + xeFl*y + x;
-								//tmp_Fl[u] = imgFl[s]*32/65535;
-								tmp_Fl[u] = imgFl[s];
-
+								//テンプレートが画像からはみ出た場合
+								if (x < 0 || y < 0 || z < 0 || x > xeFl - 1 || y > yeFl - 1 || z > zeFl - 1) {
+									
+									tmp_Fl[u] = rand() % (1000 - 100 + 1) + 100;
+								}
+								else {
+									int s = xeFl*yeFl*z + xeFl*y + x;
+									//tmp_Fl[u] = imgFl[s]*32/65535;
+									tmp_Fl[u] = imgFl[s];
+								}
 								u++;
 
 							}

@@ -894,7 +894,6 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 
 	
 
-
 }
 
 #endif

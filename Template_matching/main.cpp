@@ -33,7 +33,31 @@
 #include <iostream>
 
 template <class IMG_T>
-void deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, int yeFl, int zeFl, nari::vector<float> &imgMoveX, nari::vector<float> &imgMoveY, nari::vector<float> &imgMoveZ, nari::vector<IMG_T> &imgI, nari::vector<IMG_T> &imgO)
+void Img_deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, int yeFl, int zeFl, int move_x, int move_y, int move_z, nari::vector<float> &imgMoveX, nari::vector<float> &imgMoveY, nari::vector<float> &imgMoveZ, nari::vector<IMG_T> &imgI, nari::vector<IMG_T> &imgO)
+{
+
+	for (int z = 0; z < zeRef; z++)
+	{
+		for (int y = 0; y < yeRef; y++)
+		{
+			for (int x = 0; x < xeRef; x++)
+			{
+				int s = z * xeRef * yeRef + y * xeRef + x;
+
+				//フチに乱数が入るように設定
+				if ((-1 < (x - move_x))&& ((x - move_x) < xeFl) && (-1 < (y - move_y)) && ((y - move_y) < yeFl) && (-1 < (z - move_z)) && ((z - move_z) < zeFl)) {
+					imgO[s] = static_cast<IMG_T>(nari::interpolate_value::linear(imgI.ptr(), imgMoveX[s], imgMoveY[s], imgMoveZ[s], xeFl, yeFl, zeFl));
+				}
+				else {
+					
+					imgO[s] = rand() % (1500 - 100 + 1) + 100;
+				}
+			}
+		}
+	}
+}
+template <class IMG_T>
+void Label_deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, int yeFl, int zeFl, nari::vector<float> &imgMoveX, nari::vector<float> &imgMoveY, nari::vector<float> &imgMoveZ, nari::vector<IMG_T> &imgI, nari::vector<IMG_T> &imgO)
 {
 	for (int z = 0; z < zeRef; z++)
 	{
@@ -42,14 +66,12 @@ void deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, int y
 			for (int x = 0; x < xeRef; x++)
 			{
 				int s = z * xeRef * yeRef + y * xeRef + x;
-				//std::cout << imgMoveX[s] <<","<< imgMoveY[s] << "," << imgMoveZ[s] <<std::endl;
-				//std::cout << imgI[s] << std::endl;
 				imgO[s] = static_cast<IMG_T>(nari::interpolate_value::linear(imgI.ptr(), imgMoveX[s], imgMoveY[s], imgMoveZ[s], xeFl, yeFl, zeFl));
-				//std::cout << imgO[s] << std::endl;
 			}
 		}
 	}
 }
+
 
 void main(int argc, char *argv[])
 {
@@ -252,25 +274,51 @@ void main(int argc, char *argv[])
 		nari::vector<nari::vector<int>> DispFl(DispRef.size());
 
 		int mm = preRef[0][0];
-		std::cout << mm << std::endl;
+		std::cout << preRef[0][0] << " ." << preRef[0][1] << " ." << preRef[0][2] << std::endl;
 
 		////ここからの処理は大まかな平行移動を行う処理
 		nari::vector<nari::vector<int>> preFl(1);
 		//[46]の点のみpreTM
 		template_mathcing(imgRef, imgFl, preRef, preFl, xeRef, yeRef, zeRef,
 			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
-		//preTMの結果をもとに画像をRef→Fl平行移動させる
+		//preTMの結果をもとに画像をRefもFlも決められた座標に平行移動させる
 		//移動場格納用（基準症例の座標から対応する浮動症例の座標を取得）
-		nari::vector<float> imgMoveX(xeRef * yeRef * zeRef);
-		nari::vector<float> imgMoveY(xeRef * yeRef * zeRef);
-		nari::vector<float> imgMoveZ(xeRef * yeRef * zeRef);
-		int move_x = preRef[0][0] - preFl[0][0];
-		int move_y = preRef[0][1] - preFl[0][1];
-		int move_z = preRef[0][2] - preFl[0][2];
+		/*nari::vector<int> cor_std(3);
+		cor_std[0] = 96;
+		cor_std[1] = 105;
+		cor_std[2] = 35;*/
+		std::cout << "ここまで" << std::endl;
+		nari::vector<float> imgMoveXR(xeRef * yeRef * zeRef);
+		nari::vector<float> imgMoveYR(xeRef * yeRef * zeRef);
+		nari::vector<float> imgMoveZR(xeRef * yeRef * zeRef);
+		nari::vector<float> imgMoveXF(xeRef * yeRef * zeRef);
+		nari::vector<float> imgMoveYF(xeRef * yeRef * zeRef);
+		nari::vector<float> imgMoveZF(xeRef * yeRef * zeRef);
+		std::cout << "ここまで" << std::endl;
+		int moveR_x = 96 - preRef[0][0];
+		int moveR_y = 96 - preRef[0][1];
+		int moveR_z = 45 - preRef[0][2];
+		int moveF_x = 96 - preFl[0][0];
+		int moveF_y = 96 - preFl[0][1];
+		int moveF_z = 45 - preFl[0][2];
+		std::cout << "ここまで" << std::endl;
 
-		std::cout << move_x << std::endl;
-		std::cout << move_y << std::endl;
-		std::cout << move_z << std::endl;
+		std::cout << moveR_x << " ," << moveR_y << " ," << moveR_z << std::endl;
+		std::cout << moveF_x << " ," << moveF_y << " ," << moveF_z << std::endl;
+
+
+		nari::vector<nari::vector<int>> Disp_pre_Ref;
+		nari::vector<int> disp(3);
+		std::ofstream Ref_pre_list(input_info.dirRef + input_info.caseRef_dir + "premove/disp/" + input_info.caseRef_name + ".txt");
+		for (int a = 0; a < DispRef.size(); a++) {
+			int x_pre = DispRef[a][0] + moveR_x;
+			int y_pre = DispRef[a][1] + moveR_y;
+			int z_pre = DispRef[a][2] + moveR_z;
+			Ref_pre_list << x_pre << std::endl;
+			Ref_pre_list << y_pre << std::endl;
+			Ref_pre_list << z_pre << std::endl;
+
+		}
 
 		for (int z = 0; z < zeRef; z++)
 		{
@@ -278,31 +326,66 @@ void main(int argc, char *argv[])
 			{
 				for (int x = 0; x < xeRef; x++)
 				{
+
 					int s = z * xeRef * yeRef + y * xeRef + x;
-					imgMoveX[s] = (float)x+move_x;
-					imgMoveY[s] = (float)y+move_y;
-					imgMoveZ[s] = (float)z+move_z;
+					imgMoveXR[s] = (float)x - moveR_x;
+					imgMoveYR[s] = (float)y - moveR_y;
+					imgMoveZR[s] = (float)z - moveR_z;
+
+
+
+				}
+			}
+		}
+		for (int z = 0; z < zeFl; z++)
+		{
+			for (int y = 0; y < yeFl; y++)
+			{
+				for (int x = 0; x < xeFl; x++)
+				{
+					int s = z * xeFl * yeFl + y * xeFl + x;
+					imgMoveXF[s] = (float)x - moveF_x;
+					imgMoveYF[s] = (float)y - moveF_y;
+					imgMoveZF[s] = (float)z - moveF_z;
 				}
 			}
 		}
 
-		std::cout << imgMoveX[3] << std::endl;
-		std::cout << imgMoveY[3] << std::endl;
-		std::cout << imgMoveZ[3] << std::endl;
+
+
+
+		std::cout << imgMoveXR[3] << std::endl;
+		std::cout << imgMoveYR[3] << std::endl;
+		std::cout << imgMoveZR[3] << std::endl;
 		//imgIに浮動症例を読み込んでimgOに
-		nari::vector<short> imgI(xeRef * yeRef * zeRef),imgO(xeRef * yeRef * zeRef);
-		mhdRef.load_mhd_and_image(imgI, input_info.dirFl + cases[i].dir + cases[i].basename + ".mhd");
+		nari::vector<short> imgRef2(xeRef * yeRef * zeRef), imgFl2(xeFl * yeFl *zeFl);
 		//簡単な平行移動を行いった結果をimgRef2に保存
-		deformation_using_movement(xeRef, yeRef, zeRef, xeRef, yeRef, zeRef, imgMoveX, imgMoveY, imgMoveZ, imgI, imgO);
-		mhdRef.save_mhd_and_image(imgO, input_info.dirFl + cases[i].dir + "premove/" + cases[i].basename + ".raw");
+		Img_deformation_using_movement(xeRef, yeRef, zeRef, xeRef, yeRef, zeRef, moveR_x, moveR_y, moveR_z, imgMoveXR, imgMoveYR, imgMoveZR, imgRef, imgRef2);
+		Img_deformation_using_movement(xeFl, yeFl, zeFl, xeFl, yeFl, zeFl, moveF_x, moveF_y, moveF_z, imgMoveXF, imgMoveYF, imgMoveZF, imgFl, imgFl2);
+		mhdRef.save_mhd_and_image(imgRef2, input_info.dirRef + input_info.caseRef_dir + "premove/" + input_info.caseRef_name + ".raw");
+		mhdFl.save_mhd_and_image(imgFl2, input_info.dirFl + cases[i].dir + "premove/" + cases[i].basename + ".raw");
 
 		std::cout << "(^^)<TMするよ" << std::endl;
+
+		for (int k = 0; k < DispRef.size(); k++) {
+			DispRef[k][0] = DispRef[k][0] + moveR_x;
+			DispRef[k][1] = DispRef[k][1] + moveR_y;
+			DispRef[k][2] = DispRef[k][2] + moveR_z;
+		}
+		//浮動画像ラベルと参照画像の正解ラベルに平行移動を加える
+		nari::vector<unsigned char> imgLabel2(xeRef * yeRef * zeRef), imgAnswer(xeFl * yeFl * zeFl), imgAnswer2(xeFl * yeFl * zeFl);
+		imgAnswer.load_file_bin("//MISAWA/H/spatial_normalization/answer/" + cases[i].basename + "_label.raw");
+		Label_deformation_using_movement(xeRef, yeRef, zeRef, xeRef, yeRef, zeRef, imgMoveXR, imgMoveYR, imgMoveZR, imgLabel, imgLabel2);
+		Label_deformation_using_movement(xeFl, yeFl, zeFl, xeFl, yeFl, zeFl, imgMoveXF, imgMoveYF, imgMoveZF, imgAnswer, imgAnswer2);
+		mhdRef.save_mhd_and_image(imgLabel2, input_info.dirRef + input_info.caseRef_dir + "premove/" + input_info.caseRef_name + "_label.raw");
+		mhdFl.save_mhd_and_image(imgAnswer2, "//MISAWA/H/spatial_normalization/answer/premove/" + cases[i].basename + "_label.raw");
+
 		//テンプレートマッチング
-		template_mathcing(imgRef, imgO, DispRef, DispFl, xeRef, yeRef, zeRef,
+		template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
 			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
 		std::cout << "～テンプレートマッチング終了<(_ _)>～" << std::endl;
 		//テンプレートマッチングにより決定した対応点の座標をテキストに保存
-		std::ofstream Fl_list(input_info.dirFl + cases[i].dir + "disp/" + cases[i].basename + ".txt");
+		std::ofstream Fl_list(input_info.dirFl + cases[i].dir + "premove/disp/" + cases[i].basename + ".txt");
 		std::cout << "探索結果をテキストに保存するよ" << std::endl;
 		int xs, ys, zs;
 		for (int k = 0; k < DispRef.size(); k++) {
