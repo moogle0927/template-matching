@@ -23,6 +23,7 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 	for (int a = 0; a < disp_num; a++) {
 		nari::vector<int> disp(3);
 		nari::vector<short> tmp_Ref(tmp_size);
+		nari::vector<int> tmp_space((tmp_size),0);
 		int t = 0;
 		int v = 0;
 		//テンプレートマッチング前にあらかじめ位置合わせしたい側の画像のテンプレート作成
@@ -33,20 +34,19 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 					int y = DispRef[a][1] - tmp + q;
 					int z = DispRef[a][2] - tmp + r;
 					//テンプレートが画像からはみ出た場合(0,0,0)の濃度値を入れる
-					if (x < 0 || y < 0 || z < 0 || x > xeFl - 1 || y > yeFl - 1 || z > zeFl - 1) {
-						
-						tmp_Ref[t] = rand() % (1000 - 100 + 1) + 100;
-					}
-					else {
+					if ((x >= 0) && (y >= 0) && (z >= 0) && (x < xeRef) && (y < yeRef) && (z < zeRef)) {
 						int s = xeRef*yeRef*z + xeRef*y + x;
 						//テンプレート内の画素を0～32に正規化
 						//tmp_Ref[t] = imgRef[s]*32/65535;
 						tmp_Ref[t] = imgRef[s];
-						//std::cout << tmp_Ref[t] ;
+						t++;
 					}
-					
-					t++;
-
+					else {
+						//tmp_spaceにテンプレートの画素が入ってない画素番号を１に
+						tmp_Ref[t] = 500;
+						tmp_space[t] = 1;
+						t++;
+					}
 				}
 			}
 		}
@@ -76,17 +76,17 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 								int x = DispRef[a][0] - rangex + i - tmp + p;
 								int y = DispRef[a][1] - rangey + j - tmp + q;
 								int z = DispRef[a][2] - rangez + k - tmp + r;
-								//テンプレートが画像からはみ出た場合
-								if (x < 0 || y < 0 || z < 0 || x > xeFl - 1 || y > yeFl - 1 || z > zeFl - 1) {
-									
-									tmp_Fl[u] = rand() % (1000 - 100 + 1) + 100;
-								}
-								else {
+								//テンプレートが画像からはみ出なければテンプレートつくる
+								if ((x >= 0) && (y >= 0) && (z >= 0) && (x < xeFl) && (y < yeFl) && (z < zeFl)) {
 									int s = xeFl*yeFl*z + xeFl*y + x;
 									//tmp_Fl[u] = imgFl[s]*32/65535;
 									tmp_Fl[u] = imgFl[s];
+									u++;
 								}
-								u++;
+								else {
+									tmp_Fl[u] = 500;
+									u++;
+								}
 
 							}
 						}
@@ -94,18 +94,24 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 
 					//ここからテンプレート同士の相関係数を計算
 					double meanref = 0.0, meanfl = 0.0;
-					for (int c = 0; c<tmp_size; c++) {
-						meanref += tmp_Ref[c];
-						meanfl += tmp_Fl[c];
+					int tmp_true = 0;
+					for (int c = 0; c < tmp_size; c++) {
+						if(tmp_space[c] == 0){
+							meanref += tmp_Ref[c];
+							meanfl += tmp_Fl[c];
+							tmp_true++;
+						}
 					}
-					meanref = meanref / tmp_size;
-					meanfl = meanfl / tmp_size;
+					meanref = meanref / tmp_true;
+					meanfl = meanfl / tmp_true;
 
 					double stdref = 0.0, stdfl = 0.0, cov = 0.0;
-					for (int c = 0; c<tmp_size; c++) {
-						stdref += (tmp_Ref[c] - meanref)*(tmp_Ref[c] - meanref);
-						stdfl += (tmp_Fl[c] - meanfl)*(tmp_Fl[c] - meanfl);
-						cov += (tmp_Ref[c] - meanref)*(tmp_Fl[c] - meanfl);
+					for (int c = 0; c < tmp_size; c++) {
+						if (tmp_space[c] == 0) {
+							stdref += (tmp_Ref[c] - meanref)*(tmp_Ref[c] - meanref);
+							stdfl += (tmp_Fl[c] - meanfl)*(tmp_Fl[c] - meanfl);
+							cov += (tmp_Ref[c] - meanref)*(tmp_Fl[c] - meanfl);
+						}
 					}
 
 					//分散0になると分母が0になるのでスキップ

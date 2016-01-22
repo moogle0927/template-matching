@@ -43,14 +43,13 @@ void Img_deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, i
 			for (int x = 0; x < xeRef; x++)
 			{
 				int s = z * xeRef * yeRef + y * xeRef + x;
-
 				//フチに乱数が入るように設定
-				if ((-1 < (x - move_x))&& ((x - move_x) < xeFl) && (-1 < (y - move_y)) && ((y - move_y) < yeFl) && (-1 < (z - move_z)) && ((z - move_z) < zeFl)) {
+				if ((-1 < (x - move_x)) && ((x - move_x) < xeFl) && (-1 < (y - move_y)) && ((y - move_y) < yeFl) && (-1 < (z - move_z)) && ((z - move_z) < zeFl)) {
 					imgO[s] = static_cast<IMG_T>(nari::interpolate_value::linear(imgI.ptr(), imgMoveX[s], imgMoveY[s], imgMoveZ[s], xeFl, yeFl, zeFl));
 				}
 				else {
-					
-					imgO[s] = rand() % (1500 - 100 + 1) + 100;
+
+					imgO[s] = 500;
 				}
 			}
 		}
@@ -142,80 +141,6 @@ void main(int argc, char *argv[])
 	int delta = input_info.delta;
 
 	std::string dir_reflist = input_info.dirRef + input_info.caseRef_dir + "disp/" + input_info.caseRef_name + ".txt";
-
-
-
-	////探索点を格納するベクターを用意
-	//nari::vector<int> disp(3);
-	//nari::vector<nari::vector<int>> DispRef;
-	//int m = 0;
-
-	////ここから基準症例のテンプレートマッチングを行う計測点の座標を算出,　保存
-	//std::ofstream Ref_list(input_info.dirRef + input_info.caseRef_dir + "disp/" + input_info.caseRef_name + ".txt");
-
-	////まずは格子状に仮の探索点をとる
-	//for (int x = rx; x < xeRef - rx; x += delta) {
-	//	for (int y = ry; y < yeRef - ry; y += delta) {
-	//		for (int z = rz; z < zeRef - rz; z += delta) {
-	//			//とった点でテンプレートを作成してみる
-	//			nari::vector<short> tmp_Ref(tmp_size);
-	//			nari::vector<unsigned char> tmp_label(tmp_size);
-	//			int t = 0;
-	//			for (int r = 0; r < 2 * tmp + 1; r++) {
-	//				for (int q = 0; q < 2 * tmp + 1; q++) {
-	//					for (int p = 0; p < 2 * tmp + 1; p++) {
-	//						int xtmp = x - tmp + p;
-	//						int ytmp = y - tmp + q;
-	//						int ztmp = z - tmp + r;
-	//						//テンプレートが画像からはみ出た場合は折り返した画像を入れる
-	//						if (x < 0) x = -x;
-	//						if (y < 0) y = -y;
-	//						if (z < 0) z = -z;
-	//						if (x > xeRef - 1) x = 2 * (xeRef - 1) - x;
-	//						if (y > yeRef - 1) y = 2 * (yeRef - 1) - y;
-	//						if (z > zeRef - 1) z = 2 * (zeRef - 1) - z;
-	//						int s = xeRef*yeRef*ztmp + xeRef*ytmp + xtmp;
-	//						tmp_label[t] = imgLabel[s];
-	//						tmp_Ref[t] = imgRef[s];
-	//						t++;
-	//					}
-	//				}
-	//			}
-
-
-	//			//テンプレート内のにラベル=1になる画素が存在しなければ採用しない
-	//			int count = 0;
-	//			for (int l = 0; l < t; l++) {
-	//				if (tmp_label[l] == 1) count++;
-	//			}
-	//			if (count != 0) {
-	//				//テンプレート内の分散を計算してみて0でなければ採用
-	//				double meanref = 0.0;
-	//				double stdref = 0.0;
-	//				for (int c = 0; c < tmp_size; c++) {
-	//					meanref += tmp_Ref[c];
-	//				}
-	//				meanref = meanref / tmp_size;
-	//				for (int c = 0; c < tmp_size; c++) {
-	//					stdref += (tmp_Ref[c] - meanref)*(tmp_Ref[c] - meanref);
-	//				}
-	//				//std::cout << stdref << std::endl;
-	//				if (stdref != 0.0) {
-	//					//座標をRef_listにテキストとして保存
-	//					Ref_list << x << std::endl;
-	//					Ref_list << y << std::endl;
-	//					Ref_list << z << std::endl;
-	//					//ベクターにも保存(テンプレートマッチング用)
-	//					disp[0] = x;
-	//					disp[1] = y;
-	//					disp[2] = z;
-	//					DispRef.push_back(disp);
-	//					m++;
-	//				}
-	//			}
-	//		}
-	//	}
-	//}
 
 
 
