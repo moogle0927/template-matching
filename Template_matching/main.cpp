@@ -7,6 +7,8 @@
 #include <algorithm>
 #include "other/narimhd.h"
 
+#include <xmmintrin.h>
+#include <emmintrin.h>
 #include <sstream>
 #include "naricommon.h"
 #include "narisystem.h"
@@ -306,13 +308,21 @@ void main(int argc, char *argv[])
 		mhdRef.save_mhd_and_image(imgLabel2, input_info.dirRef + input_info.caseRef_dir + "premove/" + input_info.caseRef_name + "_label.raw");
 		mhdFl.save_mhd_and_image(imgAnswer2, "//MISAWA/H/spatial_normalization/answer/premove/" + cases[i].basename + "_label.raw");
 
-		////正解変形場作成の為
-		template_mathcing_2(imgRef2, imgFl2, imgAnswer2, DispRef, DispFl, xeRef, yeRef, zeRef,
-			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
-
-		////テンプレートマッチング
-		//template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
+		////※※正解変形場作成の為※※//
+		//template_mathcing_2(imgRef2, imgFl2, imgAnswer2, DispRef, DispFl, xeRef, yeRef, zeRef,
 		//	xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+
+		//予測した変形場を取り込む
+		nari::vector<double> prediction(DispRef.size()*3);
+		prediction.load_file_bin("//MISAWA/H/spatial_normalization/prediction/CV" + input_info.case_num+ "/mat.raw");
+		for (int k = 0; k < DispRef.size(); k++) {
+			DispRef[k][0] = DispRef[k][0] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k]));
+			DispRef[k][1] = DispRef[k][1] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1]));
+			DispRef[k][2] = DispRef[k][2] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k * 2]));
+		}
+		//テンプレートマッチング
+		template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
+		   xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
 		std::cout << "～テンプレートマッチング終了<(_ _)>～" << std::endl;
 		//テンプレートマッチングにより決定した対応点の座標をテキストに保存
 		std::ofstream Fl_list(input_info.dirFl + cases[i].dir + "premove/disp/" + cases[i].basename + ".txt");
