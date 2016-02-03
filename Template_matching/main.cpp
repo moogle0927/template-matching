@@ -27,6 +27,7 @@
 #include "raw_io.h"
 #include "info.h"
 #include "template_matching.h"
+#include "template_matching2.h"
 #include "set_point.h"
 
 #include <chrono>
@@ -43,7 +44,7 @@ void Img_deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl, i
 			for (int x = 0; x < xeRef; x++)
 			{
 				int s = z * xeRef * yeRef + y * xeRef + x;
-				//フチに乱数が入るように設定
+				//フチに500が入るように設定
 				if ((-1 < (x - move_x)) && ((x - move_x) < xeFl) && (-1 < (y - move_y)) && ((y - move_y) < yeFl) && (-1 < (z - move_z)) && ((z - move_z) < zeFl)) {
 					imgO[s] = static_cast<IMG_T>(nari::interpolate_value::linear(imgI.ptr(), imgMoveX[s], imgMoveY[s], imgMoveZ[s], xeFl, yeFl, zeFl));
 				}
@@ -205,7 +206,7 @@ void main(int argc, char *argv[])
 		nari::vector<nari::vector<int>> preFl(1);
 		//[46]の点のみpreTM
 		template_mathcing(imgRef, imgFl, preRef, preFl, xeRef, yeRef, zeRef,
-			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+			xeFl, yeFl, zeFl, 20, 10, 20, 20);
 		//preTMの結果をもとに画像をRefもFlも決められた座標に平行移動させる
 		//移動場格納用（基準症例の座標から対応する浮動症例の座標を取得）
 		/*nari::vector<int> cor_std(3);
@@ -305,9 +306,13 @@ void main(int argc, char *argv[])
 		mhdRef.save_mhd_and_image(imgLabel2, input_info.dirRef + input_info.caseRef_dir + "premove/" + input_info.caseRef_name + "_label.raw");
 		mhdFl.save_mhd_and_image(imgAnswer2, "//MISAWA/H/spatial_normalization/answer/premove/" + cases[i].basename + "_label.raw");
 
-		//テンプレートマッチング
-		template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
+		////正解変形場作成の為
+		template_mathcing_2(imgRef2, imgFl2, imgAnswer2, DispRef, DispFl, xeRef, yeRef, zeRef,
 			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+
+		////テンプレートマッチング
+		//template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
+		//	xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
 		std::cout << "～テンプレートマッチング終了<(_ _)>～" << std::endl;
 		//テンプレートマッチングにより決定した対応点の座標をテキストに保存
 		std::ofstream Fl_list(input_info.dirFl + cases[i].dir + "premove/disp/" + cases[i].basename + ".txt");

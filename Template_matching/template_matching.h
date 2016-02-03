@@ -23,7 +23,7 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 	for (int a = 0; a < disp_num; a++) {
 		nari::vector<int> disp(3);
 		nari::vector<short> tmp_Ref(tmp_size);
-		nari::vector<int> tmp_space((tmp_size),0);
+		nari::vector<int> tmp_space((tmp_size), 0);
 		int t = 0;
 		int v = 0;
 		//テンプレートマッチング前にあらかじめ位置合わせしたい側の画像のテンプレート作成
@@ -96,7 +96,7 @@ void template_mathcing(const nari::vector<T> &imgRef, const nari::vector<M> &img
 					double meanref = 0.0, meanfl = 0.0;
 					int tmp_true = 0;
 					for (int c = 0; c < tmp_size; c++) {
-						if(tmp_space[c] == 0){
+						if (tmp_space[c] == 0) {
 							meanref += tmp_Ref[c];
 							meanfl += tmp_Fl[c];
 							tmp_true++;

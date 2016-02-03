@@ -99,7 +99,7 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 		}
 	}
 
-	//②のsagittal断面の頭側[3]と首側[4]
+	//②のsagittal断面の頭側[4]と首側[5]
 	for (int z = 0; z < zeRef; z++) {
 		int x = DispRef[0][0];
 		int y = (DispRef[0][1] * 3 + DispRef[1][1]) / 4;
@@ -891,7 +891,24 @@ void set_point(std::string &dir_reflist, nari::vector<L> &imgLabel, int xeRef, i
 			x = xeRef - 1;
 		}
 	}
-
+	for (int x = xeRef - 1; x > 0; x--) {
+		int y = (DispRef[0][1] + DispRef[1][1] * 23) / 24;
+		int z = (DispRef[16][2] + DispRef[17][2] * 3) / 4;
+		int s = x + y * xeRef + z * xeRef*yeRef;
+		if (imgLabel[s] == 1) {
+			//座標をRef_listにテキストとして保存
+			Ref_list << x << std::endl;
+			Ref_list << y << std::endl;
+			Ref_list << z << std::endl;
+			//ベクターにも保存(テンプレートマッチング用)
+			disp[0] = x;
+			disp[1] = y;
+			disp[2] = z;
+			DispRef.push_back(disp);
+			//ループ抜ける
+			x = 1;
+		}
+	}
 	
 
 }
