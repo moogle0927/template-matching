@@ -93,9 +93,24 @@ void main(int argc, char *argv[])
 		getchar();
 		exit(1);
 	}
-
 	text_info input_info;
 	input_info.input(argv[1]);
+
+	std::vector<int> s;
+	std::vector<int> d;
+	std::ifstream s_path(input_info.dir_s);
+	std::ifstream d_path(input_info.dir_d);
+	std::string buf_s;
+	std::string buf_d;
+	while (s_path&& getline(s_path, buf_s))
+	{
+		s.push_back(std::stoi(buf_s));
+	}
+	while (d_path&& getline(d_path, buf_d))
+	{
+		d.push_back(std::stoi(buf_d));
+	}
+
 	std::cout << "(´・ω・)" << std::endl;
 	// information of case
 	nari::case_list_t cases;
@@ -312,32 +327,43 @@ void main(int argc, char *argv[])
 		//template_mathcing_2(imgRef2, imgFl2, imgAnswer2, DispRef, DispFl, xeRef, yeRef, zeRef,
 		//	xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
 
-		//予測した変形場を取り込む
-		nari::vector<double> prediction(DispRef.size()*3);
-		prediction.load_file_bin("//MISAWA/H/spatial_normalization/prediction/CV" + input_info.case_num+ "/mat.raw");
-		for (int k = 0; k < DispRef.size(); k++) {
-			DispRef[k][0] = DispRef[k][0] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k]));
-			DispRef[k][1] = DispRef[k][1] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1]));
-			DispRef[k][2] = DispRef[k][2] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k * 2]));
-		}
-		//テンプレートマッチング
-		template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
-		   xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
-		std::cout << "～テンプレートマッチング終了<(_ _)>～" << std::endl;
-		//テンプレートマッチングにより決定した対応点の座標をテキストに保存
-		std::ofstream Fl_list(input_info.dirFl + cases[i].dir + "premove/disp/" + cases[i].basename + ".txt");
-		std::cout << "探索結果をテキストに保存するよ" << std::endl;
-		int xs, ys, zs;
-		for (int k = 0; k < DispRef.size(); k++) {
-			xs = DispFl[k][0];
-			ys = DispFl[k][1];
-			zs = DispFl[k][2];
-			Fl_list << xs << std::endl;
-			Fl_list << ys << std::endl;
-			Fl_list << zs << std::endl;
-		}
-		std::cout << "保存した" << std::endl;
+		for (int j = 0; j < s.size(); j++) {
+			for (int k = 0; k < d.size(); k++) {
+				//予測した変形場を取り込む
+				nari::vector<double> prediction(DispRef.size() * 3);
+				std::stringstream dirprd;
+				dirprd << "//MISAWA/H/spatial_normalization/prediction/CV" << input_info.case_num << "/D" << d[k] << "S" << s[j] << "/mat.raw";
 
+				prediction.load_file_bin(dirprd.str());
+				for (int k = 0; k < DispRef.size(); k++) {
+					DispRef[k][0] = DispRef[k][0] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k]));
+					DispRef[k][1] = DispRef[k][1] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1]));
+					DispRef[k][2] = DispRef[k][2] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k * 2]));
+				}
+				//テンプレートマッチング
+				template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
+					xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+				std::cout << "～テンプレートマッチング終了<(_ _)>～" << std::endl;
+				//テンプレートマッチングにより決定した対応点の座標をテキストに保存
+				std::stringstream dirfldisp;
+				dirfldisp << input_info.dirFl << cases[i].dir << "premove/disp/" << "D" << d[k] << "S" << s[j] << "/" ;
+				nari::system::make_directry(dirfldisp.str());
+				std::ofstream Fl_list(dirfldisp.str()+ cases[i].basename + ".txt");
+				std::cout << "探索結果をテキストに保存するよ" << std::endl;
+				int xs, ys, zs;
+				for (int k = 0; k < DispRef.size(); k++) {
+					xs = DispFl[k][0];
+					ys = DispFl[k][1];
+					zs = DispFl[k][2];
+					Fl_list << xs << std::endl;
+					Fl_list << ys << std::endl;
+					Fl_list << zs << std::endl;
+				}
+				std::cout << "保存した" << std::endl;
+
+			}
+		}
+		
 	}
 	auto end = std::chrono::system_clock::now();
 	auto dur = end - start;

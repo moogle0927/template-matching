@@ -23,6 +23,8 @@ struct text_info
 	std::string caseRef_dir;
 	std::string caseRef_name;
 	std::string case_num;
+	std::string dir_s;
+	std::string dir_d;
 	int tmp;
 	int rangex;
 	int rangey;
@@ -54,6 +56,10 @@ struct text_info
 		lamb = info.get_as_double("lamb");
 		delta = info.get_as_int("delta");
 		case_num = info.get_as_str("case_num");
+
+		dir_s = info.get_as_str("S"); //à–¾•Ï”‚Ì”
+		dir_d = info.get_as_str("D"); //–Ú“I•Ï”‚Ì”
+
 
 		info.output();
 	}
