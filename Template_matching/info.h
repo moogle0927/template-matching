@@ -57,8 +57,8 @@ struct text_info
 		delta = info.get_as_int("delta");
 		case_num = info.get_as_str("case_num");
 
-		dir_s = info.get_as_str("S"); //à–¾•Ï”‚Ì”
-		dir_d = info.get_as_str("D"); //–Ú“I•Ï”‚Ì”
+		//dir_s = info.get_as_str("S"); //à–¾•Ï”‚Ì”
+		//dir_d = info.get_as_str("D"); //–Ú“I•Ï”‚Ì”
 
 
 		info.output();
