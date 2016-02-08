@@ -30,6 +30,7 @@
 #include "info.h"
 #include "template_matching.h"
 #include "template_matching2.h"
+#include "template_matching3.h"
 #include "set_point.h"
 
 #include <chrono>
@@ -314,13 +315,18 @@ void main(int argc, char *argv[])
 		//	xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
 
 		//予測した変形場を取り込む
+		nari::vector<nari::vector<int>> Disp_predict;
 		nari::vector<double> prediction(DispRef.size() * 3);
 		prediction.load_file_bin("//MISAWA/H/spatial_normalization/prediction/CV" + input_info.case_num + "/mat.raw");
 		
 		for (int k = 0; k < DispRef.size(); k++) {
-			DispRef[k][0] = DispRef[k][0] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k]));
-			DispRef[k][1] = DispRef[k][1] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1]));
-			DispRef[k][2] = DispRef[k][2] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 2]));
+			int xp = DispRef[k][0] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k]));
+			int yp = DispRef[k][1] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1]));
+			int zp = DispRef[k][2] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 2]));
+			disp[0] = xp;
+			disp[1] = yp;
+			disp[2] = zp;
+			Disp_predict.push_back(disp);
 			
 		}
 
@@ -336,15 +342,10 @@ void main(int argc, char *argv[])
 		//}
 
 		//テンプレートマッチング
-		template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
+		template_mathcing3(imgRef2, imgFl2, DispRef, DispFl, Disp_predict, xeRef, yeRef, zeRef,
 			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
 
-		for (int k = 0; k < DispFl.size(); k++) {
-			DispFl[k][0] = DispFl[k][0] - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k]));
-			DispFl[k][1] = DispFl[k][1] - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1]));
-			DispFl[k][2] = DispFl[k][2] - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 2]));
-
-		}
+		
 
 		std::cout << "～テンプレートマッチング終了<(_ _)>～" << std::endl;
 		//テンプレートマッチングにより決定した対応点の座標をテキストに保存
