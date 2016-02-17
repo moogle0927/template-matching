@@ -25,6 +25,7 @@ struct text_info
 	std::string case_num;
 	std::string dir_s;
 	std::string dir_d;
+	std::string dir_evaluate;
 	int tmp;
 	int rangex;
 	int rangey;
@@ -43,7 +44,7 @@ struct text_info
 		set = info.get_as_str("casefl");
 		pathId = nari::file::add_delim(info.get_as_str("dir_txt"));
 		pathId += set;
-
+		dir_evaluate = nari::file::add_delim(info.get_as_str("dir_evaluate"));
 		dirO = nari::file::add_delim(info.get_as_str("output"));
 
 		caseRef_dir = info.get_as_str("caseref_dir");

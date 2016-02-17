@@ -79,7 +79,7 @@ void Label_deformation_using_movement(int xeRef, int yeRef, int zeRef, int xeFl,
 
 void main(int argc, char *argv[])
 {
-	auto start = std::chrono::system_clock::now();
+	
 
 
 	//おそらくrbf変形に使う型の定義，3次元用か？
@@ -317,7 +317,17 @@ void main(int argc, char *argv[])
 		//予測した変形場を取り込む
 		nari::vector<nari::vector<int>> Disp_predict;
 		nari::vector<double> prediction(DispRef.size() * 3);
+		nari::vector<double> ansdef(DispRef.size() * 3);
+		nari::vector<double> pre_range_min(DispRef.size() * 3);
+		nari::vector<double> pre_range_max(DispRef.size() * 3);
+		nari::vector<int> range_pre_X;
+		nari::vector<int> range_pre_Y;
+		nari::vector<int> range_pre_Z;
+
 		prediction.load_file_bin("//MISAWA/H/spatial_normalization/prediction/CV" + input_info.case_num + "/mat.raw");
+		ansdef.load_file_bin("//MISAWA/H/spatial_normalization/answer/disp_move/" + cases[i].basename + "_move.raw");
+		pre_range_min.load_file_bin("//MISAWA/H/spatial_normalization/prediction/CV" + input_info.case_num + "/mat_range_min.raw");
+		pre_range_max.load_file_bin("//MISAWA/H/spatial_normalization/prediction/CV" + input_info.case_num + "/mat_range_max.raw");
 		
 		for (int k = 0; k < DispRef.size(); k++) {
 			int xp = DispRef[k][0] + _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k]));
@@ -330,20 +340,68 @@ void main(int argc, char *argv[])
 			
 		}
 
-		//std::ofstream predict_list("//MISAWA/H/spatial_normalization/prediction/CV" + input_info.case_num + "/predict.txt");
-		//int xp, yp, zp;
-		//for (int k = 0; k < DispRef.size(); k++) {
-		//	xp = DispRef[k][0];
-		//	yp = DispRef[k][1];
-		//	zp = DispRef[k][2];
-		//	predict_list << xp << std::endl;
-		//	predict_list << yp << std::endl;
-		//	predict_list << zp << std::endl;
-		//}
 
-		//テンプレートマッチング
+		for (int k = 0; k < DispRef.size(); k++) {
+			int xp = abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_min[3 * k]))- _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k])));
+			int yp = abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_min[3 * k + 1]))- _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1])));
+			int zp = abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_min[3 * k + 2]))- _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 2])));
+			if (xp <= abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_max[3 * k])) - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k])))) {
+				xp = abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_max[3 * k])) - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k])));
+			}
+			if (yp <= abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_max[3 * k + 1])) - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1])))) {
+				yp = abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_max[3 * k + 1])) - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1])));
+			}
+			if (zp <= abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_max[3 * k + 2])) - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 2])))) {
+				zp = abs(_mm_cvtsd_si32(_mm_load_sd(&pre_range_max[3 * k + 2])) - _mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 2])));
+			}
+			range_pre_X.push_back(xp);
+			range_pre_Y.push_back(yp);
+			range_pre_Z.push_back(zp);
+
+		}
+
+		std::ofstream RANGE(input_info.dir_evaluate +  cases[i].basename+"_range.csv");
+		std::ofstream RANGEtxt(input_info.dir_evaluate + cases[i].basename + "_range.txt");
+		for (int k = 0; k < range_pre_X.size(); k++) {
+			int rangeX = range_pre_X[k];
+			int rangeY = range_pre_Y[k];
+			int rangeZ = range_pre_Z[k];
+			RANGE << rangeX << "," << rangeY << "," << rangeZ << std::endl;
+		}
+		int correct = 0;
+		for (int k = 0; k < range_pre_X.size(); k++) {
+			if (((_mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k])) - range_pre_X[k]) <= ansdef[3 * k])
+				&& (ansdef[3 * k] <= (_mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k])) + range_pre_X[k]))
+				&& ((_mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1])) - range_pre_Y[k]) <= ansdef[3 * k + 1])
+				&& (ansdef[3 * k + 1] <= (_mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1])) + range_pre_Y[k]))
+				&& ((_mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 1])) - range_pre_Y[k]) <= ansdef[3 * k + 2])
+				&& (ansdef[3 * k + 2] <= (_mm_cvtsd_si32(_mm_load_sd(&prediction[3 * k + 2])) + range_pre_Z[k]))) {
+				correct++;
+			}
+			int rangeX = range_pre_X[k];
+			int rangeY = range_pre_Y[k];
+			int rangeZ = range_pre_Z[k];
+			RANGE << rangeX <<","<< rangeY << "," << rangeZ << std::endl;
+		}
+		RANGE << "正解変形場を含む点数＝" <<correct << std::endl;
+		auto start = std::chrono::system_clock::now();
+		//変形場を取り込んだテンプレートマッチング
 		template_mathcing3(imgRef2, imgFl2, DispRef, DispFl, Disp_predict, xeRef, yeRef, zeRef,
-			xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+			xeFl, yeFl, zeFl, input_info.tmp, range_pre_X, range_pre_Y, range_pre_Z);
+		auto end = std::chrono::system_clock::now();
+		auto dur = end - start;
+		auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+		RANGE << "TM処理時間=" << msec << "milli sec" << std::endl;
+
+		//auto start = std::chrono::system_clock::now();
+		////ノーマルテンプレートマッチング
+		//template_mathcing(imgRef2, imgFl2, DispRef, DispFl, xeRef, yeRef, zeRef,
+		//	xeFl, yeFl, zeFl, input_info.tmp, rx, ry, rz);
+		//auto end = std::chrono::system_clock::now();
+		//auto dur = end - start;
+		//auto msec = std::chrono::duration_cast<std::chrono::milliseconds>(dur).count();
+		//std::ofstream RANGE(input_info.dir_evaluate +  cases[i].basename+"_time.txt");
+		//RANGE << "TM処理時間=" << msec << "milli sec" << std::endl;
 
 		
 
@@ -363,8 +421,5 @@ void main(int argc, char *argv[])
 		std::cout << "保存した" << std::endl;
 
 	}
-	auto end = std::chrono::system_clock::now();
-	auto dur = end - start;
-	auto msec = std::chrono::duration_cast<std::chrono::seconds>(dur).count();
-	std::cout << "TM処理時間=" << msec << "sec" << std::endl;
+	
 }

@@ -11,7 +11,7 @@
 template <class T, class M>
 void template_mathcing3(const nari::vector<T> &imgRef, const nari::vector<M> &imgFl, const nari::vector<nari::vector<int>> &DispRef,
 	nari::vector<nari::vector<int>> &DispFl, const nari::vector<nari::vector<int>> &DispPre, int xeRef, int yeRef, int zeRef, int xeFl, int yeFl, int zeFl,
-	int tmp, int rangex, int rangey, int rangez)
+	int tmp, const nari::vector<int> &rangex, const nari::vector<int> &rangey, const nari::vector<int> &rangez)
 {
 	int disp_num = DispRef.size();
 	std::cout << disp_num << std::endl;
@@ -52,7 +52,7 @@ void template_mathcing3(const nari::vector<T> &imgRef, const nari::vector<M> &im
 			}
 		}
 
-		std::cout << "(^^)<テンプレート作った" << std::endl;
+		//std::cout << "(^^)<テンプレート作った" << std::endl;
 
 		//評価値最大値と対応点の座標を格納する変数を定義
 		//相互情報量の最大値を格納する変数を定義
@@ -65,18 +65,18 @@ void template_mathcing3(const nari::vector<T> &imgRef, const nari::vector<M> &im
 		int xs, ys, zs;
 
 		//テンプレートマッチング開始
-		for (int k = 0; k < rangez * 2 + 1; k++) {
-			for (int j = 0; j < rangey * 2 + 1; j++) {
-				for (int i = 0; i < rangex * 2 + 1; i++) {
+		for (int k = 0; k < rangez[a] * 2 + 1; k++) {
+			for (int j = 0; j < rangey[a] * 2 + 1; j++) {
+				for (int i = 0; i < rangex[a] * 2 + 1; i++) {
 					nari::vector<short> tmp_Fl(tmp_size);
 					int u = 0;
 					//位置合わせされる側の画像テンプレート作成
 					for (int r = 0; r < 2 * tmp + 1; r++) {
 						for (int q = 0; q < 2 * tmp + 1; q++) {
 							for (int p = 0; p < 2 * tmp + 1; p++) {
-								int x = DispPre[a][0] - rangex + i - tmp + p;
-								int y = DispPre[a][1] - rangey + j - tmp + q;
-								int z = DispPre[a][2] - rangez + k - tmp + r;
+								int x = DispPre[a][0] - rangex[a] + i - tmp + p;
+								int y = DispPre[a][1] - rangey[a] + j - tmp + q;
+								int z = DispPre[a][2] - rangez[a] + k - tmp + r;
 								//テンプレートが画像からはみ出なければテンプレートつくる
 								if ((x >= 0) && (y >= 0) && (z >= 0) && (x < xeFl) && (y < yeFl) && (z < zeFl)) {
 									int s = xeFl*yeFl*z + xeFl*y + x;
@@ -125,9 +125,9 @@ void template_mathcing3(const nari::vector<T> &imgRef, const nari::vector<M> &im
 
 					if (cc >= cc_max) {
 						cc_max = cc;
-						xs = DispPre[a][0] - rangex + i;
-						ys = DispPre[a][1] - rangey + j;
-						zs = DispPre[a][2] - rangez + k;
+						xs = DispPre[a][0] - rangex[a] + i;
+						ys = DispPre[a][1] - rangey[a] + j;
+						zs = DispPre[a][2] - rangez[a] + k;
 						//std::cout << "stdref=" << stdref << std::endl;
 						//std::cout << "cc=" << cc << std::endl;
 					}
@@ -172,10 +172,10 @@ void template_mathcing3(const nari::vector<T> &imgRef, const nari::vector<M> &im
 		disp[2] = zs;
 		DispFl[a] = (disp);
 
-		std::cout << "(^^)<探索点みつけた" << std::endl;
-		std::cout << "a=" << a << std::endl;
-		std::cout << "x=" << DispPre[a][0] << " y=" << DispPre[a][1] << " z=" << DispPre[a][2] << std::endl;
-		std::cout << "xs=" << DispFl[a][0] << " ys=" << DispFl[a][1] << " zs=" << DispFl[a][2] << std::endl;
+		//std::cout << "(^^)<探索点みつけた" << std::endl;
+		//std::cout << "a=" << a << std::endl;
+		//std::cout << "x=" << DispPre[a][0] << " y=" << DispPre[a][1] << " z=" << DispPre[a][2] << std::endl;
+		//std::cout << "xs=" << DispFl[a][0] << " ys=" << DispFl[a][1] << " zs=" << DispFl[a][2] << std::endl;
 	}
 }
 #endif
